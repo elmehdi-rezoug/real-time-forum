@@ -24,12 +24,10 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Logout: no session_token cookie on request: %v", err)
 	} else {
-		result, err := database.Database.Exec("DELETE FROM sessions WHERE id = ?", cookie.Value)
+		_, err := database.Database.Exec("DELETE FROM sessions WHERE id = ?", cookie.Value)
 		if err != nil {
 			log.Printf("Logout: failed to delete session %s: %v", cookie.Value, err)
-		} else if rows, _ := result.RowsAffected(); rows == 0 {
-			log.Printf("Logout: no session row matched token %s (already deleted or never existed)", cookie.Value)
-		}
+		} 
 	}
 
 	expired := time.Unix(0, 0)
