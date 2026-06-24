@@ -16,11 +16,11 @@ type MeResponse struct {
 
 func Me(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/api/me" {
-		sendJSONError(w, http.StatusNotFound, "Not found")
+		HandleError(w, http.StatusNotFound, "Not found")
 		return
 	}
 	if r.Method != http.MethodGet {
-		sendJSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		HandleError(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
@@ -48,7 +48,7 @@ func Me(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		log.Printf("Me: db error: %v", err)
-		sendJSONError(w, http.StatusInternalServerError, "Server error")
+		HandleError(w, http.StatusInternalServerError, "Server error")
 		return
 	}
 
