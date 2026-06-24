@@ -4,11 +4,28 @@
 
 const app = document.getElementById('app');
 
-document.addEventListener('DOMContentLoaded', () => {
+// ---------------- AUTH STATE ----------------
+// Single source of truth — populated by /api/me on every page load.
+// Never read document.cookie to determine login status.
+let authState = { authenticated: false, user: null };
+
+async function initAuth() {
+  try {
+    const res = await fetch('/api/me');
+    if (!res.ok) throw new Error('auth check failed');
+    authState = await res.json();
+  } catch (err) {
+    console.error('initAuth error:', err);
+    authState = { authenticated: false, user: null };
+  }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
   if (!app) {
     console.error('App container not found');
     return;
   }
+  await initAuth();
   router();
 });
 
@@ -17,7 +34,6 @@ window.addEventListener('popstate', () => router());
 // ---------------- ROUTER ----------------
 function router() {
   const path = window.location.pathname;
-
 
   if (path === '/register') {
     renderRegister();
@@ -52,16 +68,16 @@ function displayMessage(message, isError = true) {
 
 // ---------------- NAVBAR ----------------
 function renderNavbar() {
-  const isLoggedIn = document.cookie.includes('logged_in');
   return `
     <header class="navbar">
       <div class="logo" onclick="navigateTo('/')">01Forum</div>
       <div class="auth-buttons">
         ${
-          isLoggedIn
-            ? `<button class="btn logout" onclick="handleLogout()">Logout</button>`
+          authState.authenticated
+            ? `<span class="nav-username">${escapeHTML(authState.user?.nickname || '')}</span>
+               <button class="btn logout" onclick="handleLogout()">Logout</button>`
             : `<button class="btn login"    onclick="navigateTo('/login')">Login</button>
-             <button class="btn register" onclick="navigateTo('/register')">Register</button>`
+               <button class="btn register" onclick="navigateTo('/register')">Register</button>`
         }
       </div>
     </header>`;
@@ -97,7 +113,7 @@ function renderHome() {
 
 // ---------------- LOGIN UI ----------------
 function renderLogin() {
-  if (document.cookie.includes('logged_in')) {
+  if (authState.authenticated) {
     navigateTo('/');
     return;
   }
@@ -111,13 +127,12 @@ function renderLogin() {
       <input id="login-id"   placeholder="Email or Nickname">
       <input id="login-pass" type="password" placeholder="Password">
       <button type="button" onclick="login()">Login</button>
-   
     </div>`;
 }
 
 // ---------------- REGISTER UI ----------------
 function renderRegister() {
-  if (document.cookie.includes('logged_in')) {
+  if (authState.authenticated) {
     navigateTo('/');
     return;
   }
@@ -207,7 +222,8 @@ async function login() {
       displayMessage(result.error || 'Login failed', true);
       return;
     }
-    localStorage.setItem('flash_message', result.message || 'Login successful');
+    // Re-verify with the server — never trust client-side state for auth
+    await initAuth();
     navigateTo('/');
   } catch (err) {
     console.error('Login error:', err);
@@ -222,8 +238,8 @@ async function handleLogout() {
   } catch (err) {
     console.error(err);
   }
-  document.cookie =
-    'logged_in=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+  // Reset local state and re-render — server already cleared the cookie
+  authState = { authenticated: false, user: null };
   navigateTo('/');
 }
 
