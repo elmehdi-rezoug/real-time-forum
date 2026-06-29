@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -87,24 +86,9 @@ func CreatePostAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie, err := r.Cookie("session_token")
+	userID, err := GetUserIDFromSession(r)
 	if err != nil {
 		HandleError(w, http.StatusUnauthorized, "You must be logged in to post")
-		return
-	}
-
-	var userID int
-	err = database.Database.QueryRow(
-		"SELECT user_id FROM sessions WHERE id = ? AND expires_at > DATETIME('now')",
-		cookie.Value,
-	).Scan(&userID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			HandleError(w, http.StatusUnauthorized, "Invalid or expired session. Please re-login.")
-		} else {
-			log.Printf("CreatePostAPI session: %v", err)
-			HandleError(w, http.StatusInternalServerError, "Server error")
-		}
 		return
 	}
 
