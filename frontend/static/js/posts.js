@@ -2,7 +2,7 @@
 import { state } from './state.js';
 import { navigateTo } from './routeer.js';
 import { displayMessage } from './toast.js';
-import { escapeHTML } from './utils.js';
+import { escapeHTML, postCardHTML } from './utils.js';
 
 let allPosts = [];
 let visibleCount = 10;
@@ -77,15 +77,7 @@ function renderPosts(posts) {
     .map(
       (p) => `
     <article class="post">
-      <div class="post-header">
-        <h3>${escapeHTML(p.title)}</h3>
-        <div class="post-categories">
-          <span class="category">${escapeHTML(p.category_name)}</span>
-        </div>
-      </div>
-      <div class="post-body">
-        <p>${escapeHTML(p.content)}</p>
-      </div>
+      ${postCardHTML(p)}
     </article>
   `
     )

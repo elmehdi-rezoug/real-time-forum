@@ -2,6 +2,10 @@ export const state = {
   auth: { authenticated: false, user: null },
 };
 
+export function resetAuth() {
+  state.auth = { authenticated: false, user: null };
+}
+
 export async function initAuth() {
   try {
     const res = await fetch('/api/me');

@@ -7,7 +7,7 @@
 // =====================================================================
 
 import { state } from './state.js';
-import { escapeHTML } from './utils.js';
+import { postCardHTML } from './utils.js';
 import { renderUserList } from './listusers.js';
 
 let ws = null;
@@ -65,25 +65,7 @@ function handle(msg) {
 
     case 'session_kicked':
       disconnectWS();
-      location.reload();function prependPost(post) {
-  if (!post) return;
-  const list = document.querySelector('.posts-list');
-  if (!list) return;
-
-  const card = document.createElement('article');
-  card.className = 'post';
-  card.innerHTML = `
-    <div class="post-header">
-      <h3>${escapeHTML(post.title)}</h3>
-      <div class="post-categories">
-        <span class="category">${escapeHTML(post.category_name)}</span>
-      </div>
-    </div>
-    <div class="post-body">
-      <p>${escapeHTML(post.content)}</p>
-    </div>`;
-  list.prepend(card);
-}
+      location.reload();
       break;
   }
 }
@@ -97,15 +79,7 @@ function prependPost(post) {
 
   const card = document.createElement('article');
   card.className = 'post';
-  card.innerHTML = `
-    <div class="post-header">
-      <h3>${escapeHTML(post.title)}</h3>
-      <div class="post-categories">
-        <span class="category">${escapeHTML(post.category_name)}</span>
-      </div>
-    </div>
-    <div class="post-body">
-      <p>${escapeHTML(post.content)}</p>
-    </div>`;
+  card.innerHTML = postCardHTML(post);
   list.prepend(card);
 }
+
