@@ -30,17 +30,7 @@ type wsMsg struct {
 // ---- ServeWS --------------------------------------------------------
 
 func ServeWS(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("session_token")
-	if err != nil {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	var userID int
-	err = database.Database.QueryRow(
-		"SELECT user_id FROM sessions WHERE id = ? AND expires_at > DATETIME('now')",
-		cookie.Value,
-	).Scan(&userID)
+	userID, err := GetUserIDFromSession(r)
 	if err != nil {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
