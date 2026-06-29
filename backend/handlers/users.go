@@ -7,6 +7,7 @@ import (
 	"zone/backend/database"
 )
 
+
 type UserOnlineStatus struct {
 	ID       int    `json:"id"`
 	Nickname string `json:"nickname"`
@@ -20,16 +21,7 @@ func GetUsersAPI(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// exclude current user from the list
-	cookie, err := r.Cookie("session_token")
-	if err != nil {
-		HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
-	var currentUserID int
-	err = database.Database.QueryRow(
-		"SELECT user_id FROM sessions WHERE id = ? AND expires_at > DATETIME('now')",
-		cookie.Value,
-	).Scan(&currentUserID)
+	currentUserID, err := GetUserIDFromSession(r)
 	if err != nil {
 		HandleError(w, http.StatusUnauthorized, "Unauthorized")
 		return
@@ -58,13 +50,4 @@ func GetUsersAPI(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(users)
-}
-
-func UpdateLastSeen(userID int) {
-	_, err := database.Database.Exec(
-		"UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = ?", userID,
-	)
-	if err != nil {
-		log.Println("UpdateLastSeen:", err)
-	}
 }
