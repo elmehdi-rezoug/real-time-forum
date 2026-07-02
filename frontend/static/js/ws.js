@@ -1,10 +1,3 @@
-// =====================================================================
-//  ws.js — WebSocket client
-//  Handles:
-//    users          → update user list live
-//    new_post       → prepend post to feed live
-//    session_kicked → reload page (logged in elsewhere)
-// =====================================================================
 
 import { state } from './state.js';
 import { postCardHTML } from './utils.js';
@@ -13,7 +6,7 @@ import { renderUserList } from './listusers.js';
 let ws = null;
 let reconnectTimer = null;
 
-// ---- connect / disconnect -------------------------------------------
+// connect / disconnect 
 
 export function connectWS() {
   if (!state.auth.authenticated) return;
@@ -48,14 +41,14 @@ export function disconnectWS() {
   }
 }
 
-// ---- event handler --------------------------------------------------
+//  event handler 
 
 function handle(msg) {
   switch (msg.type) {
     case 'users':
       // server sends full list — filter self out then render
       renderUserList(
-        (msg.users || []).filter((u) => u.id !== state.auth.user?.id)
+        (msg.users || []).filter((u) => u.id !== state.auth.id)
       );
       break;
 
@@ -70,7 +63,7 @@ function handle(msg) {
   }
 }
 
-// ---- new post -------------------------------------------------------
+//  new post 
 
 function prependPost(post) {
   if (!post) return;
