@@ -15,15 +15,18 @@ http.HandleFunc("/login", handlers.Login)
 // Protected
 http.HandleFunc("/logout",
 	middlewares.Auth(handlers.Logout))
+
 	//api routes
-http.HandleFunc("/api/me",
-	middlewares.Auth(handlers.Me))
+http.HandleFunc("/api/me",handlers.Me)
 
 http.HandleFunc("/api/users",
 	middlewares.Auth(handlers.GetUsersAPI))
 
 http.HandleFunc("/api/posts/create",
 	middlewares.Auth(handlers.CreatePostAPI))
+
+http.HandleFunc("/api/posts/react",
+	middlewares.Auth(handlers.ReactToPost))
 
 // Public
 http.HandleFunc("/api/posts", handlers.GetPostsAPI)
