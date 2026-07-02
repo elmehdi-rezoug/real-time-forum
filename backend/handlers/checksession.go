@@ -1,8 +1,7 @@
 package handlers
+
 import (
-	"database/sql"
 	"encoding/json"
-	"log"
 	"net/http"
 	"zone/backend/database"
 )
@@ -16,8 +15,8 @@ type MeResponse struct {
 
 func Me(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/api/me" {
-		HandleError(w, http.StatusNotFound, "Not found")
-		return
+	HandleError(w, http.StatusNotFound, "Not found")
+	return
 	}
 	if r.Method != http.MethodGet {
 		HandleError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -26,32 +25,25 @@ func Me(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	cookie, err := r.Cookie("session_token")
+	userID, err := GetUserIDFromSession(r)
 	if err != nil {
 		json.NewEncoder(w).Encode(MeResponse{Authenticated: false})
 		return
 	}
 
 	var resp MeResponse
-	query := `
-		SELECT u.id, u.nickname, u.email
-		FROM sessions s
-		JOIN users u ON s.user_id = u.id
-		WHERE s.id = ? AND s.expires_at > DATETIME('now')`
+	err = database.Database.QueryRow(
+		"SELECT nickname, email FROM users WHERE id = ?",
+		userID,
+	).Scan(&resp.Nickname, &resp.Email)
 
-	err = database.Database.QueryRow(query, cookie.Value).
-		Scan(&resp.UserID, &resp.Nickname, &resp.Email)
-
-	if err == sql.ErrNoRows {
-		json.NewEncoder(w).Encode(MeResponse{Authenticated: false})
-		return
-	}
 	if err != nil {
-		log.Printf("Me: db error: %v", err)
 		HandleError(w, http.StatusInternalServerError, "Server error")
 		return
 	}
 
 	resp.Authenticated = true
+	resp.UserID = userID
+
 	json.NewEncoder(w).Encode(resp)
 }
