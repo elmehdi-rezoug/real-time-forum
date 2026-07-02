@@ -1,3 +1,14 @@
+import { renderReactionBar } from './reactions.js';
+export function postCardHTML(p) {
+  return `
+  <h3>author: ${escapeHTML(p.nickname)}</h3>
+    <h3>${escapeHTML(p.title)}</h3>
+    <p>${escapeHTML(p.content)}</p>
+    <span class="category-tag">${escapeHTML(p.category_name)}</span>
+    ${renderReactionBar(p)}
+  `;
+}
+
 export function escapeHTML(str) {
   if (typeof str !== 'string') return '';
   return str
@@ -6,21 +17,4 @@ export function escapeHTML(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
-}
-
-/**
- * Returns the inner HTML for a single post card.
- * Shared by posts.js (renderPosts) and ws.js (prependPost).
- */
-export function postCardHTML(post) {
-  return `
-    <div class="post-header">
-      <h3>${escapeHTML(post.title)}</h3>
-      <div class="post-categories">
-        <span class="category">${escapeHTML(post.category_name)}</span>
-      </div>
-    </div>
-    <div class="post-body">
-      <p>${escapeHTML(post.content)}</p>
-    </div>`;
 }
