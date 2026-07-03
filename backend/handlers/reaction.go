@@ -26,7 +26,7 @@ func ReactToPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := GetUserIDFromSession(r) 
+	userID, err := GetUserIDFromSession(r)
 	if err != nil {
 		HandleError(w, http.StatusUnauthorized, "Unauthorized")
 		return
@@ -86,6 +86,7 @@ func ReactToPost(w http.ResponseWriter, r *http.Request) {
 	RespondJSON(w, http.StatusOK, resp)
 }
 
+// It calculates the likes and dislikes for a single post after the Like/Dislike button is pressed.
 func getReactionSummary(postID, userID int) (ReactResponse, error) {
 	var resp ReactResponse
 

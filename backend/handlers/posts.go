@@ -24,7 +24,7 @@ type CategoryResponse struct {
 	Name string `json:"name"`
 }
 
-
+// fetch all posts when the page loads with like and deslik for all posts
 func GetPostsAPI(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		HandleError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -59,7 +59,7 @@ func GetPostsAPI(w http.ResponseWriter, r *http.Request) {
 	posts := []PostResponse{}
 	for rows.Next() {
 		var p PostResponse
-		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.UserID,&p.Nickname, &p.CategoryName,
+		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.UserID, &p.Nickname, &p.CategoryName,
 			&p.LikeCount, &p.DislikeCount); err != nil {
 			continue
 		}
@@ -130,8 +130,8 @@ func CreatePostAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	title        := strings.TrimSpace(r.FormValue("title"))
-	content      := strings.TrimSpace(r.FormValue("content"))
+	title := strings.TrimSpace(r.FormValue("title"))
+	content := strings.TrimSpace(r.FormValue("content"))
 	categoryIDStr := r.FormValue("category_id")
 
 	if title == "" || content == "" || categoryIDStr == "" {
@@ -156,10 +156,10 @@ func CreatePostAPI(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// broadcast new post to all connected clients via WebSocket
-postID, err := result.LastInsertId()
+	postID, err := result.LastInsertId()
 	if err != nil {
-    HandleError(w, http.StatusInternalServerError, "Could not get new post ID")
-    return
+		HandleError(w, http.StatusInternalServerError, "Could not get new post ID")
+		return
 	}
 	var post PostResponse
 	err = database.Database.QueryRow(`
