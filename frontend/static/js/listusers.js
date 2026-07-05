@@ -54,19 +54,22 @@ export function renderUserList(users) {
   list.innerHTML = sorted
     .map(
       (u) => `
-      <div class="chat-user-item ${u.online ? '' : 'offline'}">
+      <div class="chat-user-item ${u.online ? '' : 'offline'}" data-user-id="${
+        u.id
+      }" data-user-nickname="${escapeHTML(u.nickname)}">
         <div class="chat-avatar">
           ${escapeHTML(u.nickname[0].toUpperCase())}
           <span class="chat-dot ${u.online ? 'dot-on' : 'dot-off'}"></span>
         </div>
         <span class="chat-username">${escapeHTML(u.nickname)}</span>
+        <button class="chat-open-btn" onclick="window._openChat(${
+          u.id
+        })" title="Chat with ${escapeHTML(u.nickname)}">💬</button>
       </div>
     `
     )
     .join('');
 }
-
-// ---- initial REST load ----------------------------------------------
 
 export async function loadUsers() {
   try {
