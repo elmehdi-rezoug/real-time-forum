@@ -13,8 +13,11 @@ import {
 } from './posts.js';
 import { disconnectWS } from './ws.js';
 import { reactToPost } from './reactions.js';
+import { openChatPanel, closeChatPanel } from './chatpanel.js';
 
 window._react = reactToPost;
+window._openChat = openChatPanel;
+window._closeChat = closeChatPanel;
 window._nav = navigateTo;
 window._logout = async () => {
   disconnectWS();
