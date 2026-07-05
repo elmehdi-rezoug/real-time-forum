@@ -277,10 +277,7 @@ button:focus-visible,
    ============================================================ */
 .container {
   display: grid;
-  grid-template-columns: minmax(240px, 280px) minmax(0, 1fr) minmax(
-      280px,
-      340px
-    );
+  grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
   gap: 1.75rem;
   max-width: 1680px;
   width: 100%;
@@ -288,6 +285,14 @@ button:focus-visible,
   padding: 2rem clamp(1.5rem, 3vw, 3rem);
   flex: 1;
   align-items: start;
+  transition: grid-template-columns 0.2s var(--ease);
+}
+
+.container.chat-open {
+  grid-template-columns: minmax(240px, 280px) minmax(0, 1fr) minmax(
+      300px,
+      360px
+    );
 }
 
 /* ============================================================
@@ -881,16 +886,11 @@ button:focus-visible,
    CHAT SIDEBAR (users)
    ============================================================ */
 .chat-sidebar {
-  position: sticky;
-  top: 88px;
-  height: calc(100vh - 104px);
   display: flex;
   flex-direction: column;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
 }
 
 /* ---- Header ---- */
@@ -898,8 +898,7 @@ button:focus-visible,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.95rem 1.1rem;
-  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.85rem;
   flex-shrink: 0;
 }
 
@@ -921,9 +920,10 @@ button:focus-visible,
 
 /* ---- User list ---- */
 .chat-user-list {
-  flex: 1;
+  max-height: 320px;
   overflow-y: auto;
-  padding: 0.5rem;
+  padding: 0.15rem;
+  margin: 0 -0.15rem;
 }
 
 .chat-empty-list {
@@ -1010,12 +1010,43 @@ button:focus-visible,
 }
 
 .chat-username {
+  flex: 1;
+  min-width: 0;
   font-size: 0.84rem;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ---- Open-chat icon on each user row ---- */
+.chat-open-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 5px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s var(--ease), color 0.15s var(--ease),
+    background 0.15s var(--ease);
+}
+.chat-user-item:hover .chat-open-btn,
+.chat-open-btn:focus-visible {
+  opacity: 1;
+}
+.chat-open-btn:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+@media (hover: none) {
+  .chat-open-btn {
+    opacity: 1;
+  }
 }
 
 .chat-badge {
@@ -1044,17 +1075,31 @@ button:focus-visible,
   font-size: 0.74rem;
 }
 
-/* ---- Chat panel (legacy support, unused by current JS) ---- */
-.chat-panel {
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  max-height: 320px;
-  flex-shrink: 0;
+/* ---- Chat dock (right column) ---- */
+.chat-panel-dock {
+  display: none;
 }
 
-.chat-panel:empty {
-  display: none;
+.chat-panel-dock.open {
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 88px;
+  height: calc(100vh - 104px);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  animation: post-in 0.25s var(--ease);
+}
+
+/* ---- Chat panel (fills the dock) ---- */
+.chat-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .chat-panel-header {
@@ -1237,12 +1282,20 @@ button:focus-visible,
    RESPONSIVE
    ============================================================ */
 @media (max-width: 1180px) {
-  .container {
+  .container,
+  .container.chat-open {
     grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
     max-width: 1000px;
   }
-  .chat-sidebar {
-    display: none;
+  .chat-panel-dock.open {
+    position: fixed;
+    top: 64px;
+    right: 1rem;
+    bottom: 1rem;
+    width: min(360px, calc(100vw - 2rem));
+    height: auto;
+    z-index: 90;
+    box-shadow: var(--shadow-lg);
   }
 }
 
@@ -1265,6 +1318,9 @@ button:focus-visible,
   .filter-group {
     grid-column: 1 / -1;
   }
+  .chat-sidebar {
+    grid-column: 1 / -1;
+  }
   .navbar {
     padding: 0 1.1rem;
   }
@@ -1276,6 +1332,14 @@ button:focus-visible,
 
   .error-code {
     font-size: 4.2rem;
+  }
+
+  .chat-panel-dock.open {
+    top: 58px;
+    right: 0.5rem;
+    left: 0.5rem;
+    bottom: 0.5rem;
+    width: auto;
   }
 }
 
