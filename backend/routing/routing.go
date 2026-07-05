@@ -8,6 +8,19 @@ import (
 
 func RegisterRout() {
 	// Auth routes
+	//main rout
+		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if len(r.URL.Path) >= 4 && r.URL.Path[:4] == "/api" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte(`{"error":"endpoint not found"}`))
+			return
+		}
+		// Everything else → SPA (index.html handles routing + error display)
+		http.ServeFile(w, r, "./frontend/index.html")
+	})
+	// Static files
+		http.HandleFunc("/static/", handlers.HandleStatic)
 	// Public
 	http.HandleFunc("/register", handlers.Register)
 	http.HandleFunc("/login", handlers.Login)

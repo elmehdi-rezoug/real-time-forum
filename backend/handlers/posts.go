@@ -114,7 +114,6 @@ func GetCategoriesAPI(w http.ResponseWriter, r *http.Request) {
 		}
 		categories = append(categories, c)
 	}
-
 	RespondJSON(w, http.StatusOK, categories)
 }
 
@@ -132,7 +131,7 @@ func CreatePostAPI(w http.ResponseWriter, r *http.Request) {
 
 	title := strings.TrimSpace(r.FormValue("title"))
 	content := strings.TrimSpace(r.FormValue("content"))
-	categoryIDStr := r.FormValue("category_id")
+	categoryIDStr := r.FormValue("categoryID")
 
 	if title == "" || content == "" || categoryIDStr == "" {
 		HandleError(w, http.StatusBadRequest, "All fields are required")

@@ -1,4 +1,3 @@
-
 import { state } from './state.js';
 import { navigateTo } from './routeer.js';
 import { displayMessage } from './toast.js';
@@ -37,7 +36,7 @@ export function loadMorePosts() {
 export function filterPosts() {
   visibleCount = PAGE_SIZE;
   renderPosts(getFilteredPosts());
-}
+} 
 
 export function clearFilters() {
   visibleCount = PAGE_SIZE;
@@ -97,38 +96,37 @@ function renderPosts(posts) {
 }
 
 // ---------------- CREATE POST FORM ----------------
-export function renderCreatePostForm() {
+export async function renderCreatePostForm() {
   const container = document.getElementById('posts-container');
   if (!container) return;
 
-  fetch('/api/categories')
-    .then((res) => {
-      if (!res.ok) throw new Error();
-      return res.json();
-    })
-    .then((categories) => {
-      const options = categories
-        .map((c) => `<option value="${c.id}">${escapeHTML(c.name)}</option>`)
-        .join('');
+  try {
+    const res = await fetch('/api/categories');
+    if (!res.ok) throw new Error('Failed to fetch categories');
+    const categories = await res.json();
+    console.log(categories);
+    const options = categories
+      .map((c) => `<option value="${c.id}">${c.name}</option>`)
+      .join('');
 
-      container.innerHTML = `
-        <div class="create-post-form">
-          <h3>Create a New Post</h3>
-          <input id="post-title" placeholder="Post title" maxlength="200">
-          <select id="post-category">
-            <option value="">Select a category</option>
-            ${options}
-          </select>
-          <textarea id="post-content" placeholder="Write your post..." rows="5"></textarea>
-          <div class="form-actions">
-            <button type="button" class="btn primary" onclick="window._submitPost()">Publish</button>
-            <button type="button" class="btn"         onclick="window._loadPosts()">Cancel</button>
-          </div>
-        </div>`;
-    })
-    .catch(() => {
-      container.innerHTML = `<p class="error-text">Failed to load categories.</p>`;
-    });
+    container.innerHTML = `
+      <div class="create-post-form">
+        <h3>Create a New Post</h3>
+        <input id="post-title" placeholder="Post title" maxlength="200">
+        <select id="post-category">
+          <option value="">Select a category</option>
+          ${options}
+        </select>
+        <textarea id="post-content" placeholder="Write your post..." rows="5"></textarea>
+        <div class="form-actions">
+          <button type="button" class="btn primary" onclick="window._submitPost()">Publish</button>
+          <button type="button" class="btn"         onclick="window._loadPosts()">Cancel</button>
+        </div>
+      </div>`;
+  } catch (err) {
+    console.error('renderCreatePostForm error:', err);
+    container.innerHTML = `<p class="error-text">Failed to load categories.</p>`;
+  }
 }
 
 // ---------------- SUBMIT POST ----------------
@@ -145,12 +143,11 @@ export async function submitPost() {
   try {
     const res = await fetch('/api/posts/create', {
       method: 'POST',
-      body: new URLSearchParams({ title, content, category_id: categoryID }),
+      body: new URLSearchParams({ title, content, categoryID }),
     });
-    const result = await res.json();
 
     await loadPosts();
-    displayMessage(result.message || 'Post created!', false);
+    displayMessage('Post created successfully', false);
   } catch (err) {
     console.error('submitPost error:', err);
     displayMessage('Network error. Please try again.', true);

@@ -12,7 +12,8 @@ func HandleStatic(w http.ResponseWriter, r *http.Request) {
 		HandleError(w, http.StatusNotFound, "Not Found!")
 		return
 	}
-	filePath := filepath.Join("static", r.URL.Path[len("/static/"):])
+	filePath := filepath.Join("frontend/static", r.URL.Path[len("/static/"):])
+
 	if _, err := os.Stat(filePath); err != nil {
 		HandleError(w, http.StatusNotFound, "Not Found!")
 		return
