@@ -21,16 +21,18 @@ export function renderHome() {
           <label><input type="checkbox" value="Sports"      onchange="window._filterPosts()"> Sports</label>
         </div>
         <button class="clear-btn" onclick="window._clearFilters()">Clear Filters</button>
+
+        ${renderChatSidebar()}
       </aside>
 
       <main class="content">
         <div id="posts-container">Loading feed...</div>
       </main>
 
-      ${renderChatSidebar()}
+      <aside class="chat-panel-dock" id="chat-panel-dock"></aside>
     </div>`;
 
   loadPosts();
-  loadUsers(); 
-  connectWS(); 
+  loadUsers();
+  connectWS();
 }
