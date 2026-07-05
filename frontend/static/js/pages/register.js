@@ -10,8 +10,7 @@ export function renderRegister() {
     navigateTo('/');
     return;
   }
-  if (window.location.pathname !== '/register')
-    window.history.pushState({}, '', '/register');
+  if (location.pathname !== '/register') history.pushState({}, '', '/register');
 
   app.innerHTML = `
     ${renderNavbar()}
@@ -29,7 +28,7 @@ export function renderRegister() {
       <input id="email"            placeholder="Email">
       <input id="password"         type="password" placeholder="Password">
       <input id="confirm_password" type="password" placeholder="Confirm password">
-      <button type="button" onclick="window._register()">Register</button>
+      <button type="button" data-action="register">Register</button>
     </div>`;
 }
 

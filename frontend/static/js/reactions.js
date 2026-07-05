@@ -24,11 +24,15 @@ export function renderReactionBar(post) {
   return `
     <div class="post-reactions" data-post-id="${post.id}">
       <button class="react-btn like-btn ${liked ? 'active' : ''}"
-              onclick="window._react(${post.id}, 'like')">
+              data-action="react" data-post-id="${
+                post.id
+              }" data-reaction-type="like">
         👍 <span class="like-count">${post.like_count}</span>
       </button>
       <button class="react-btn dislike-btn ${disliked ? 'active' : ''}"
-              onclick="window._react(${post.id}, 'dislike')">
+              data-action="react" data-post-id="${
+                post.id
+              }" data-reaction-type="dislike">
         👎 <span class="dislike-count">${post.dislike_count}</span>
       </button>
     </div>`;

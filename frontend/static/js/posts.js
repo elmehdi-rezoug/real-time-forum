@@ -36,7 +36,7 @@ export function loadMorePosts() {
 export function filterPosts() {
   visibleCount = PAGE_SIZE;
   renderPosts(getFilteredPosts());
-} 
+}
 
 export function clearFilters() {
   visibleCount = PAGE_SIZE;
@@ -61,7 +61,7 @@ function renderPosts(posts) {
   if (!container) return;
 
   const createBtn = state.auth.authenticated
-    ? `<button class="btn primary create-post-btn" onclick="window._renderCreatePostForm()">+ New Post</button>`
+    ? `<button class="btn primary create-post-btn" data-action="render-create-post">+ New Post</button>`
     : '';
 
   if (!posts || posts.length === 0) {
@@ -84,7 +84,7 @@ function renderPosts(posts) {
 
   const loadMoreBtn = hasMore
     ? `<div class="load-more-wrap">
-        <button class="btn load-more-btn" onclick="window._loadMorePosts()">
+        <button class="btn load-more-btn" data-action="load-more">
           Load more <span class="load-more-count">(${
             posts.length - visibleCount
           } remaining)</span>
@@ -119,8 +119,8 @@ export async function renderCreatePostForm() {
         </select>
         <textarea id="post-content" placeholder="Write your post..." rows="5"></textarea>
         <div class="form-actions">
-          <button type="button" class="btn primary" onclick="window._submitPost()">Publish</button>
-          <button type="button" class="btn"         onclick="window._loadPosts()">Cancel</button>
+          <button type="button" class="btn primary" data-action="submit-post">Publish</button>
+          <button type="button" class="btn" data-action="load-posts">Cancel</button>
         </div>
       </div>`;
   } catch (err) {

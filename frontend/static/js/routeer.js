@@ -5,7 +5,7 @@ import { renderError } from './pages/error.js';
 import { state } from './state.js';
 
 export function router() {
-  const path = window.location.pathname;
+  const path = location.pathname;
 
   const publicPaths = ['/login', '/register'];
   const auth = state.auth.authenticated;
@@ -26,6 +26,6 @@ export function router() {
 }
 
 export function navigateTo(path) {
-  window.history.pushState({}, '', path);
+  history.pushState({}, '', path);
   router();
 }

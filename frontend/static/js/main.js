@@ -14,23 +14,7 @@ import {
 import { disconnectWS } from './ws.js';
 import { reactToPost } from './reactions.js';
 import { openChatPanel, closeChatPanel } from './chatpanel.js';
-
-window._react = reactToPost;
-window._openChat = openChatPanel;
-window._closeChat = closeChatPanel;
-window._nav = navigateTo;
-window._logout = async () => {
-  disconnectWS();
-  await handleLogout();
-};
-window._login = login;
-window._register = register;
-window._loadPosts = loadPosts;
-window._loadMorePosts = loadMorePosts;
-window._filterPosts = filterPosts;
-window._clearFilters = clearFilters;
-window._renderCreatePostForm = renderCreatePostForm;
-window._submitPost = submitPost;
+import { initAppEvents } from './app-events.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const app = document.getElementById('app');
@@ -39,7 +23,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
   await initAuth();
+  initAppEvents();
   router();
 });
-
-window.addEventListener('popstate', () => router());

@@ -10,8 +10,7 @@ export function renderLogin() {
     navigateTo('/');
     return;
   }
-  if (window.location.pathname !== '/login')
-    window.history.pushState({}, '', '/login');
+  if (location.pathname !== '/login') history.pushState({}, '', '/login');
 
   app.innerHTML = `
     ${renderNavbar()}
@@ -19,7 +18,7 @@ export function renderLogin() {
       <h2>Login</h2>
       <input id="login-id"   placeholder="Email or Nickname">
       <input id="login-pass" type="password" placeholder="Password">
-      <button type="button" onclick="window._login()">Login</button>
+      <button type="button" data-action="login">Login</button>
     </div>`;
 }
 

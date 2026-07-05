@@ -62,9 +62,9 @@ export function renderUserList(users) {
           <span class="chat-dot ${u.online ? 'dot-on' : 'dot-off'}"></span>
         </div>
         <span class="chat-username">${escapeHTML(u.nickname)}</span>
-        <button class="chat-open-btn" onclick="window._openChat(${
+        <button class="chat-open-btn" data-action="open-chat" data-user-id="${
           u.id
-        })" title="Chat with ${escapeHTML(u.nickname)}">💬</button>
+        }" title="Chat with ${escapeHTML(u.nickname)}">💬</button>
       </div>
     `
     )

@@ -1,5 +1,7 @@
 // ---- initial REST load ----------------------------------------------
 
+import { escapeHTML } from './utils.js';
+
 export function openChatPanel(userId) {
   const dock = document.getElementById('chat-panel-dock');
   const container = document.querySelector('.container');
@@ -23,7 +25,7 @@ export function openChatPanel(userId) {
     online ? 'Online' : 'Offline'
   }</span>
         </div>
-        <button class="chat-close" onclick="window._closeChat()" title="Close chat">✕</button>
+        <button class="chat-close" data-action="close-chat" title="Close chat">✕</button>
       </div>
       <div class="chat-messages">
         <div class="chat-no-history">Messaging is coming soon</div>

@@ -4,16 +4,16 @@ import { escapeHTML } from './utils.js';
 export function renderNavbar() {
   return `
     <header class="navbar">
-      <div class="logo" onclick="window._nav('/')">01Forum</div>
+      <div class="logo" data-action="nav" data-target="/">01Forum</div>
       <div class="auth-buttons">
         ${
           state.auth.authenticated
             ? `<span class="nav-username">${escapeHTML(
                 state.auth.nickname || ''
               )}</span>
-               <button class="btn logout" onclick="window._logout()">Logout</button>`
-            : `<button class="btn login"    onclick="window._nav('/login')">Login</button>
-               <button class="btn register" onclick="window._nav('/register')">Register</button>`
+               <button class="btn logout" data-action="logout">Logout</button>`
+            : `<button class="btn login" data-action="nav" data-target="/login">Login</button>
+               <button class="btn register" data-action="nav" data-target="/register">Register</button>`
         }
       </div>
     </header>`;

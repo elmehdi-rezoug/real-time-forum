@@ -40,6 +40,6 @@ export function renderError(status) {
       <div class="error-code">${status}</div>
       <h2 class="error-title">${meta.title}</h2>
       <p class="error-desc">${meta.desc}</p>
-      <button class="btn primary" onclick="window._nav('/')">Back to Home</button>
+      <button class="btn primary" data-action="nav" data-target="/">Back to Home</button>
     </div>`;
 }
