@@ -17,6 +17,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch r.Method {
+		case http.MethodGet:
+		http.ServeFile(w, r, "./frontend/index.html")
+		return
 	case http.MethodPost:
 		identifier := strings.TrimSpace(r.FormValue("login"))
 		password   := r.FormValue("password")

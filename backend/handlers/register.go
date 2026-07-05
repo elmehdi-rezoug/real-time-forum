@@ -27,7 +27,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch r.Method {
-
+			case http.MethodGet:
+		http.ServeFile(w, r, "./frontend/index.html")
+		return
 	case http.MethodPost:
 		confirmPassword := r.FormValue("confirm_password")
 		rawAge := r.FormValue("age")
