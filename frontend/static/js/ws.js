@@ -8,6 +8,7 @@ let reconnectTimer = null;
 // connect / disconnect
 
 export function connectWS() {
+
   if (!state.auth.authenticated) return;
 
   // already open or connecting — don't create a second connection
@@ -17,7 +18,8 @@ export function connectWS() {
   )
     return;
 
-  ws = new WebSocket(`http://localhost:8080/ws`);
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
 
   ws.onopen = () => clearTimeout(reconnectTimer);
   ws.onmessage = (e) => {
@@ -26,6 +28,7 @@ export function connectWS() {
     } catch {}
   };
   ws.onclose = () => {
+    ws = null;
     reconnectTimer = setTimeout(connectWS, 3000);
   };
   ws.onerror = () => ws.close();

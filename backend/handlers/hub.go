@@ -29,12 +29,13 @@ type wsMsg struct {
 // ---- ServeWS --------------------------------------------------------
 
 func ServeWS(w http.ResponseWriter, r *http.Request) {
+	
 	userID, err := GetUserIDFromSession(r)
 	if err != nil {
 		HandleError(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
-
+	
 	conn, err := upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
@@ -59,6 +60,14 @@ func ServeWS(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
+
+	mu.Lock()
+	if c, ok := conns[userID]; ok && c == conn {
+			log.Println("Deleting user:", userID)
+		delete(conns, userID)
+	}
+	mu.Unlock()
+
 	conn.Close()
 	broadcastUsers()
 }
