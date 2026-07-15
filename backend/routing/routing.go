@@ -38,7 +38,7 @@ func RegisterRout() {
 	http.HandleFunc("/api/posts/react", middlewares.Auth(handlers.ReactToPost))
 
 	// Public
-	http.HandleFunc("/api/posts", handlers.GetPostsAPI)
-	http.HandleFunc("/api/categories", handlers.GetCategoriesAPI)
+	http.HandleFunc("/api/posts",middlewares.Auth( handlers.GetPostsAPI))
+	http.HandleFunc("/api/categories", middlewares.Auth(handlers.GetCategoriesAPI))
 	http.HandleFunc("/ws", handlers.ServeWS)
 }

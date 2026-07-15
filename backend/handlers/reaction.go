@@ -41,6 +41,7 @@ func ReactToPost(w http.ResponseWriter, r *http.Request) {
 		HandleError(w, http.StatusBadRequest, "type must be 'like' or 'dislike'")
 		return
 	}
+
 	newIsLike := 0
 	if req.Type == "like" {
 		newIsLike = 1
@@ -52,6 +53,23 @@ func ReactToPost(w http.ResponseWriter, r *http.Request) {
 		"SELECT is_like FROM POST_REACTIONS WHERE user_id = ? AND post_id = ?",
 		userID, req.PostID,
 	).Scan(&existingIsLike)
+
+		//check if the post in data base
+	var exists bool
+	err1 := database.Database.QueryRow(
+	"SELECT EXISTS(SELECT * FROM posts WHERE id = ?)",
+	req.PostID,
+).Scan(&exists)
+
+if err1 != nil {
+	HandleError(w, http.StatusInternalServerError, "Database error")
+	return
+}
+
+if !exists {
+	HandleError(w, http.StatusBadRequest, "Invalid post")
+	return
+}
 
 	switch {
 	case err == sql.ErrNoRows:
