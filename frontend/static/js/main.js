@@ -11,9 +11,7 @@ import {
   renderCreatePostForm,
   submitPost,
 } from './posts.js';
-import { disconnectWS } from './ws.js';
 import { reactToPost } from './reactions.js';
-import { openChatPanel, closeChatPanel } from './chatpanel.js';
 import { initAppEvents } from './app-events.js';
 
 document.addEventListener('DOMContentLoaded', async () => {

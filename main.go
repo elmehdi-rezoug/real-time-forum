@@ -15,7 +15,7 @@ func main() {
 
 		routing.RegisterRout()
 
-	port := ":8080"
+	port := ":8082"
 	log.Println("Server running on http://localhost" + port)
 	if err := http.ListenAndServe(port, nil); err != nil {
 		log.Fatal("Server error:", err)

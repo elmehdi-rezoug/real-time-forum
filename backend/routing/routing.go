@@ -34,8 +34,6 @@ func RegisterRout() {
 	// API routes
 	http.HandleFunc("/api/me", limiter.Middleware(handlers.Me))
 
-	http.HandleFunc("/api/users", limiter.Middleware(middlewares.Auth(handlers.GetUsersAPI)))
-
 	http.HandleFunc("/api/posts/create", limiter.Middleware(middlewares.Auth(handlers.CreatePostAPI)))
 
 	http.HandleFunc("/api/posts/react", limiter.Middleware(middlewares.Auth(handlers.ReactToPost)))
@@ -43,5 +41,4 @@ func RegisterRout() {
 	// Public
 	http.HandleFunc("/api/posts", limiter.Middleware(middlewares.Auth(handlers.GetPostsAPI)))
 	http.HandleFunc("/api/categories", limiter.Middleware(handlers.GetCategoriesAPI))
-	http.HandleFunc("/ws", limiter.Middleware(handlers.ServeWS))
 }

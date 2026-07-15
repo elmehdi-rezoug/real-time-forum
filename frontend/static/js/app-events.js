@@ -8,8 +8,6 @@ import {
   submitPost,
 } from './posts.js';
 import { reactToPost } from './reactions.js';
-import { openChatPanel, closeChatPanel } from './chatpanel.js';
-import { disconnectWS } from './ws.js';
 import { handleLogout } from './auth.js';
 import { login } from './pages/login.js';
 import { register } from './pages/register.js';
@@ -30,18 +28,7 @@ export function initAppEvents() {
         break;
       }
       case 'logout': {
-        disconnectWS();
         handleLogout();
-        break;
-      }
-      case 'open-chat': {
-        const userId =
-          btn.dataset.userId || btn.closest('[data-user-id]')?.dataset.userId;
-        if (userId) openChatPanel(Number(userId));
-        break;
-      }
-      case 'close-chat': {
-        closeChatPanel();
         break;
       }
       case 'render-create-post': {

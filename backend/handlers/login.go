@@ -45,10 +45,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// kick any existing WS connections for this user BEFORE deleting sessions
-		
-		KickUser(userID)
-
 		// delete old sessions from DB
 		_, err = database.Database.Exec("DELETE FROM sessions WHERE user_id = ?", userID)
 		if err != nil {

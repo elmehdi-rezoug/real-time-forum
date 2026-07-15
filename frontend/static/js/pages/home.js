@@ -1,7 +1,5 @@
 import { renderNavbar } from '../navbar.js';
-import { loadPosts, filterPosts, clearFilters } from '../posts.js';
-import { renderChatSidebar, loadUsers } from '../listusers.js';
-import { connectWS } from '../ws.js';
+import { loadPosts } from '../posts.js';
 
 export function renderHome() {
   const app = document.getElementById('app');
@@ -25,17 +23,13 @@ export function renderHome() {
           <button class="clear-btn" data-action="clear-filters">Clear Filters</button>
         </aside>
 
-        ${renderChatSidebar()}
       </div>
 
       <main class="content">
         <div id="posts-container">Loading feed...</div>
       </main>
 
-      <aside class="chat-panel-dock" id="chat-panel-dock"></aside>
     </div>`;
 
   loadPosts();
-  loadUsers();
-  connectWS();
 }
