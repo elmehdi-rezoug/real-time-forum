@@ -3,6 +3,7 @@ import { renderLogin } from './pages/login.js';
 import { renderRegister } from './pages/register.js';
 import { renderError } from './pages/error.js';
 import { state } from './state.js';
+import { renderPostPage } from './pages/post.js';
 
 export function router() {
   const path = location.pathname;
@@ -11,7 +12,10 @@ export function router() {
   const knownPaths = ['/', ...publicPaths];
   const auth = state.auth.authenticated;
 
-  if (!knownPaths.includes(path)) {
+  const isPostRoute = path.startsWith('/posts/');
+  const isknown = knownPaths.includes(path) || isPostRoute;
+
+  if (!isknown) {
     renderError(404);
     return;
   }
@@ -27,6 +31,15 @@ export function router() {
     renderLogin();
   } else if (path === '/register') {
     renderRegister();
+  } else if (isPostRoute) {
+    const parts = path.split('/');
+    const postId = parts[2]; //  the URL is in the format /posts/:id
+    if (isNaN(postId)) {
+      renderError(400);
+      return;
+    } else {
+      renderPostPage(postId);
+    }
   }
 }
 

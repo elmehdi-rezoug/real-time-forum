@@ -9,10 +9,10 @@ import (
 )
 
 type PostResponse struct {
-	ID           int    `json:"id"`
-	Title        string `json:"title"`
-	Content      string `json:"content"`
-	UserID       int    `json:"user_id"`
+	ID           int      `json:"id"`
+	Title        string   `json:"title"`
+	Content      string   `json:"content"`
+	UserID       int      `json:"user_id"`
 	Nickname     string   `json:"nickname"`
 	Categories   []string `json:"categories"`
 	LikeCount    int      `json:"like_count"`
@@ -23,7 +23,6 @@ type CategoryResponse struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
-
 
 // It also checks if the user liked or disliked them GetPostsAPI fetches all posts to show on the page.
 func GetPostsAPI(w http.ResponseWriter, r *http.Request) {
@@ -96,21 +95,21 @@ func GetPostsAPI(w http.ResponseWriter, r *http.Request) {
 	posts := []PostResponse{}
 	for rows.Next() {
 		var p PostResponse
-var categoriesStr string
+		var categoriesStr string
 
-if err := rows.Scan(
-    &p.ID,
-    &p.Title,
-    &p.Content,
-    &p.UserID,
-    &p.Nickname,
-    &categoriesStr,
-    &p.LikeCount,
-    &p.DislikeCount,
-); err != nil {
-    continue
-}
-p.Categories = strings.Split(categoriesStr, ",")
+		if err := rows.Scan(
+			&p.ID,
+			&p.Title,
+			&p.Content,
+			&p.UserID,
+			&p.Nickname,
+			&categoriesStr,
+			&p.LikeCount,
+			&p.DislikeCount,
+		); err != nil {
+			continue
+		}
+		p.Categories = strings.Split(categoriesStr, ",")
 		posts = append(posts, p)
 	}
 
@@ -127,7 +126,7 @@ p.Categories = strings.Split(categoriesStr, ",")
 					userReactions[postID] = isLike
 				}
 			}
-			
+
 			// Update each post with the user's reaction ("like" or "dislike").
 			for i := range posts {
 				if v, ok := userReactions[posts[i].ID]; ok {
@@ -143,6 +142,78 @@ p.Categories = strings.Split(categoriesStr, ",")
 
 	// 8. Send the final list of posts back to the web browser.
 	RespondJSON(w, http.StatusOK, posts)
+}
+
+// GetPostByIDAPI fetches a single post by id from /api/posts/{id}.
+func GetPostByIDAPI(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		HandleError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	idStr := strings.TrimPrefix(r.URL.Path, "/api/posts/")
+	postID, err := strconv.Atoi(idStr)
+	if err != nil || postID <= 0 {
+		HandleError(w, http.StatusBadRequest, "Invalid post id")
+		return
+	}
+
+	userID, _ := GetUserIDFromSession(r)
+
+	var p PostResponse
+	var categoriesStr string
+	err = database.Database.QueryRow(`
+		SELECT
+			p.id,
+			p.title,
+			p.content,
+			p.user_id,
+			u.nickname,
+			(SELECT GROUP_CONCAT(c2.name) FROM post_categories pc2 JOIN categories c2 ON pc2.category_id = c2.id WHERE pc2.post_id = p.id) AS categories,
+			COALESCE(SUM(CASE WHEN pr.is_like = 1 THEN 1 ELSE 0 END), 0) AS like_count,
+			COALESCE(SUM(CASE WHEN pr.is_like = 0 THEN 1 ELSE 0 END), 0) AS dislike_count
+		FROM posts p
+		JOIN users u ON p.user_id = u.id
+		LEFT JOIN post_reactions pr ON pr.post_id = p.id
+		WHERE p.id = ?
+		GROUP BY p.id
+	`, postID).Scan(
+		&p.ID,
+		&p.Title,
+		&p.Content,
+		&p.UserID,
+		&p.Nickname,
+		&categoriesStr,
+		&p.LikeCount,
+		&p.DislikeCount,
+	)
+	if err != nil {
+		HandleError(w, http.StatusNotFound, "Post not found")
+		return
+	}
+
+	if categoriesStr != "" {
+		p.Categories = strings.Split(categoriesStr, ",")
+	} else {
+		p.Categories = []string{}
+	}
+
+	if userID != 0 {
+		var isLike int
+		err = database.Database.QueryRow(
+			"SELECT is_like FROM POST_REACTIONS WHERE user_id = ? AND post_id = ?",
+			userID, postID,
+		).Scan(&isLike)
+		if err == nil {
+			if isLike == 1 {
+				p.UserReaction = "like"
+			} else {
+				p.UserReaction = "dislike"
+			}
+		}
+	}
+
+	RespondJSON(w, http.StatusOK, p)
 }
 
 func GetCategoriesAPI(w http.ResponseWriter, r *http.Request) {
@@ -195,25 +266,25 @@ func CreatePostAPI(w http.ResponseWriter, r *http.Request) {
 		HandleError(w, http.StatusBadRequest, "All fields are required")
 		return
 	}
-	if len(title)>200||len(content)>2000{
+	if len(title) > 200 || len(content) > 2000 {
 		HandleError(w, http.StatusBadRequest, "title or contant to long")
 		return
 	}
-		validCategories := map[string]bool{
-    "1": true,
-    "2": true,
-    "3": true,
-    "4": true,
-    "5": true,
-    "6": true,
-		}
+	validCategories := map[string]bool{
+		"1": true,
+		"2": true,
+		"3": true,
+		"4": true,
+		"5": true,
+		"6": true,
+	}
 
-			for _, cat := range categoryIDStrs {
-    if !validCategories[cat] {
-        HandleError(w, http.StatusBadRequest, "Invalid category")
-        return
-    }
-}
+	for _, cat := range categoryIDStrs {
+		if !validCategories[cat] {
+			HandleError(w, http.StatusBadRequest, "Invalid category")
+			return
+		}
+	}
 	result, err := database.Database.Exec(
 		"INSERT INTO posts (title, content, user_id) VALUES (?, ?, ?)",
 		title, content, userID,
@@ -238,9 +309,9 @@ func CreatePostAPI(w http.ResponseWriter, r *http.Request) {
 		_, err = database.Database.Exec("INSERT INTO post_categories (post_id, category_id) VALUES (?, ?)", postID, catID)
 		if err != nil {
 			HandleError(w, http.StatusBadRequest, "Invalid category")
-			return	
-			}
+			return
+		}
 	}
 
 	RespondJSON(w, http.StatusCreated, map[string]string{"message": "Post created successfully!"})
-}	
+}

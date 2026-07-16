@@ -1,14 +1,12 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 	"zone/backend/database"
 	"zone/backend/types"
 )
-
-
-
 
 // GetCommentsAPI fetches comments with pagination for a specific post.
 func GetCommentsAPI(w http.ResponseWriter, r *http.Request) {
@@ -21,6 +19,7 @@ func GetCommentsAPI(w http.ResponseWriter, r *http.Request) {
 	// Extract Post ID: Parse the post_id from the URL query parameters
 	postID, err := strconv.Atoi(r.URL.Query().Get("post_id"))
 	if err != nil || postID <= 0 {
+		log.Println("Invalid post_id:", r.URL.Query().Get("post_id"))
 		HandleError(w, http.StatusBadRequest, "Invalid post_id")
 		return
 	}
@@ -39,7 +38,7 @@ func GetCommentsAPI(w http.ResponseWriter, r *http.Request) {
 		offset = 0 // default offset
 	}
 
-	// Database Query: Fetch comments from the database with nickname, content, and created_at for the specified post_id 
+	// Database Query: Fetch comments from the database with nickname, content, and created_at for the specified post_id
 	comments, err := database.GetComments(postID, limit, offset)
 
 	// failed to fetch comments from the database
@@ -57,6 +56,7 @@ func GetCommentsAPI(w http.ResponseWriter, r *http.Request) {
 func CreateCommentAPI(w http.ResponseWriter, r *http.Request) {
 	// Restrict the request method to POST
 	if r.Method != http.MethodPost {
+		log.Println("here", r.Method)
 		HandleError(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}

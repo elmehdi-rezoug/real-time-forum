@@ -11,6 +11,11 @@ import { reactToPost } from './reactions.js';
 import { handleLogout } from './auth.js';
 import { login } from './pages/login.js';
 import { register } from './pages/register.js';
+import {
+  fetchPostAndComments,
+  loadMoreComments,
+  submitComment,
+} from './comments.js';
 
 export function initAppEvents() {
   // Delegated click handler for declarative `data-action` wiring
@@ -63,6 +68,21 @@ export function initAppEvents() {
         const postId = btn.dataset.postId;
         const type = btn.dataset.reactionType;
         if (postId && type) reactToPost(Number(postId), type);
+        break;
+      }
+      case 'view-post': {
+        const postId = btn.dataset.postId;
+        if (postId) navigateTo(`/posts/${postId}`);
+        break;
+      }
+      case 'submit-comment': {
+        const postId = btn.dataset.postId;
+        if (postId) submitComment(Number(postId));
+        break;
+      }
+      case 'load-more-comments': {
+        const postId = btn.dataset.postId;
+        if (postId) loadMoreComments(Number(postId));
         break;
       }
       default:

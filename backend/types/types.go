@@ -11,7 +11,7 @@ type CommentsResponse struct {
 }
 
 type Comment struct {
-	Nickname  string
-	Content   string
-	CreatedAt string
+	Nickname  string `json:"nickname"`
+	Content   string `json:"content"`
+	CreatedAt string `json:"created_at"`
 }
