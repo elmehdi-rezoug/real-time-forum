@@ -151,7 +151,7 @@ func GetPostByIDAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idStr := strings.TrimPrefix(r.URL.Path, "/api/posts/")
+	idStr := r.PathValue("id")
 	postID, err := strconv.Atoi(idStr)
 	if err != nil || postID <= 0 {
 		HandleError(w, http.StatusBadRequest, "Invalid post id")
@@ -161,59 +161,82 @@ func GetPostByIDAPI(w http.ResponseWriter, r *http.Request) {
 	userID, _ := GetUserIDFromSession(r)
 
 	var p PostResponse
-	var categoriesStr string
 	err = database.Database.QueryRow(`
-		SELECT
-			p.id,
-			p.title,
-			p.content,
-			p.user_id,
-			u.nickname,
-			(SELECT GROUP_CONCAT(c2.name) FROM post_categories pc2 JOIN categories c2 ON pc2.category_id = c2.id WHERE pc2.post_id = p.id) AS categories,
-			COALESCE(SUM(CASE WHEN pr.is_like = 1 THEN 1 ELSE 0 END), 0) AS like_count,
-			COALESCE(SUM(CASE WHEN pr.is_like = 0 THEN 1 ELSE 0 END), 0) AS dislike_count
+		SELECT p.id, p.title, p.content, p.user_id, u.nickname
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
-		LEFT JOIN post_reactions pr ON pr.post_id = p.id
 		WHERE p.id = ?
-		GROUP BY p.id
-	`, postID).Scan(
-		&p.ID,
-		&p.Title,
-		&p.Content,
-		&p.UserID,
-		&p.Nickname,
-		&categoriesStr,
-		&p.LikeCount,
-		&p.DislikeCount,
-	)
+	`, postID).Scan(&p.ID, &p.Title, &p.Content, &p.UserID, &p.Nickname)
 	if err != nil {
 		HandleError(w, http.StatusNotFound, "Post not found")
 		return
 	}
 
-	if categoriesStr != "" {
-		p.Categories = strings.Split(categoriesStr, ",")
-	} else {
-		p.Categories = []string{}
+	p.Categories, err = getPostCategories(postID)
+	if err != nil {
+		HandleError(w, http.StatusInternalServerError, "Failed to load categories")
+		return
+	}
+
+	p.LikeCount, p.DislikeCount, err = getPostReactionCounts(postID)
+	if err != nil {
+		HandleError(w, http.StatusInternalServerError, "Failed to load reactions")
+		return
 	}
 
 	if userID != 0 {
-		var isLike int
-		err = database.Database.QueryRow(
-			"SELECT is_like FROM POST_REACTIONS WHERE user_id = ? AND post_id = ?",
-			userID, postID,
-		).Scan(&isLike)
-		if err == nil {
-			if isLike == 1 {
-				p.UserReaction = "like"
-			} else {
-				p.UserReaction = "dislike"
-			}
-		}
+		p.UserReaction = getUserReaction(userID, postID)
 	}
 
 	RespondJSON(w, http.StatusOK, p)
+}
+
+func getPostCategories(postID int) ([]string, error) {
+	rows, err := database.Database.Query(`
+		SELECT c.name FROM post_categories pc
+		JOIN categories c ON pc.category_id = c.id
+		WHERE pc.post_id = ?
+	`, postID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	categories := []string{}
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		categories = append(categories, name)
+	}
+	return categories, rows.Err()
+}
+
+func getPostReactionCounts(postID int) (likes, dislikes int, err error) {
+	err = database.Database.QueryRow(`
+		SELECT
+			COALESCE(SUM(CASE WHEN is_like = 1 THEN 1 ELSE 0 END), 0),
+			COALESCE(SUM(CASE WHEN is_like = 0 THEN 1 ELSE 0 END), 0)
+		FROM post_reactions
+		WHERE post_id = ?
+	`, postID).Scan(&likes, &dislikes)
+	return
+}
+
+func getUserReaction(userID, postID int) string {
+	var isLike int
+	err := database.Database.QueryRow(
+		"SELECT is_like FROM post_reactions WHERE user_id = ? AND post_id = ?",
+		userID, postID,
+	).Scan(&isLike)
+	if err != nil {
+		return ""
+	}
+	if isLike == 1 {
+		return "like"
+	}
+	return "dislike"
 }
 
 func GetCategoriesAPI(w http.ResponseWriter, r *http.Request) {
