@@ -9,11 +9,65 @@ import (
 // Shared by handlers (login) and middleware (auth).
 func UpdateLastSeen(userID int) {
 	_, err := Database.Exec(
-		"UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = ?", userID,
+		"UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = ?",
+		userID,
 	)
 	if err != nil {
 		log.Println("UpdateLastSeen:", err)
 	}
+}
+
+// InsertMessage stores a private message in the database and updates user activity.
+func InsertMessage(senderID, receiverID int, content string) (int, error) {
+	result, err := Database.Exec(
+		"INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)",
+		senderID, receiverID, content,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	messageID, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	UpdateLastSeen(senderID)
+	UpdateLastSeen(receiverID)
+
+	return int(messageID), nil
+}
+
+// GetMessages retrieves private messages between two users with pagination.
+func GetMessages(userID1, userID2, limit, offset int) ([]types.Message, error) {
+	rows, err := Database.Query(
+		`SELECT m.id, m.sender_id, m.receiver_id, m.content, m.created_at, u.nickname
+		FROM messages m
+		JOIN users u ON u.id = m.sender_id
+		WHERE (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?)
+		ORDER BY m.created_at DESC
+		LIMIT ? OFFSET ?`,
+		userID1, userID2, userID2, userID1, limit, offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var messages []types.Message
+	for rows.Next() {
+		var message types.Message
+		if err := rows.Scan(&message.ID, &message.SenderID, &message.ReceiverID, &message.Content, &message.CreatedAt, &message.SenderNickname); err != nil {
+			return nil, err
+		}
+		messages = append(messages, message)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return messages, nil
 }
 
 // DoesPostExist checks if a post with the given ID exists in the database.
