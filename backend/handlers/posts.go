@@ -45,24 +45,48 @@ func GetPostsAPI(w http.ResponseWriter, r *http.Request) {
 		limit = 50 // sane upper bound
 	}
 
-	// Default offset is 0 (start from the first post).
+	// Default offset is 0 start from the first post
 	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
 	if err != nil || offset < 0 {
 		offset = 0
 	}
 
+	beforeStr := r.URL.Query().Get("before")
+	var beforeID int
+	if beforeStr != "" {
+		beforeID, err = strconv.Atoi(beforeStr)
+		if err != nil || beforeID <= 0 {
+			HandleError(w, http.StatusBadRequest, "Invalid before id")
+			return
+		}
+	}
+
 	// 4. Check if the user wants to filter by categories.
 	categories := r.URL.Query()["category"]
-	whereClause := ""
+
+	var whereConditions []string
 	args := []interface{}{}
+
+	if beforeStr != "" {
+		whereConditions = append(whereConditions, "p.id <= ?")
+		args = append(args, beforeID)
+	}
+
 	if len(categories) > 0 {
 		// If there are categories, create a filter for the database query.
 		placeholders := strings.TrimSuffix(strings.Repeat("?,", len(categories)), ",")
-		whereClause = "WHERE EXISTS (SELECT * FROM post_categories pc3 JOIN categories c3 ON pc3.category_id = c3.id WHERE pc3.post_id = p.id AND c3.name IN (" + placeholders + "))"
+		whereConditions = append(whereConditions,
+			"EXISTS (SELECT * FROM post_categories pc3 JOIN categories c3 ON pc3.category_id = c3.id WHERE pc3.post_id = p.id AND c3.name IN ("+placeholders+"))")
 		for _, cat := range categories {
 			args = append(args, cat)
 		}
 	}
+
+	whereClause := ""
+	if len(whereConditions) > 0 {
+		whereClause = "WHERE " + strings.Join(whereConditions, " AND ")
+	}
+
 	args = append(args, limit, offset)
 
 	// 5. Ask the database for the posts, their categories, and the total number of likes/dislikes.
@@ -137,6 +161,14 @@ func GetPostsAPI(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
+		}
+	}
+
+	// 7b. First page only: report the current newest post id so the client
+	if beforeStr == "" {
+		var maxID int
+		if err := database.Database.QueryRow("SELECT COALESCE(MAX(id), 0) FROM posts").Scan(&maxID); err == nil {
+			w.Header().Set("X-Max-Post-Id", strconv.Itoa(maxID))
 		}
 	}
 

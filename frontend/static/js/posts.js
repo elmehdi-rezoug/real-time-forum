@@ -9,6 +9,7 @@ let offset = 0;
 let hasMore = true;
 let isLoading = false;
 let activeCategories = [];
+let snapshotMaxId = null;
 
 //  LOAD POSTS (first page)
 export async function loadPosts() {
@@ -18,6 +19,7 @@ export async function loadPosts() {
   allPosts = [];
   offset = 0;
   hasMore = true;
+  snapshotMaxId = null; // fresh load -> recompute the snapshot from scratch
   activeCategories = getCheckedCategories();
 
   try {
@@ -55,9 +57,16 @@ export async function loadMorePosts() {
 async function fetchPostsPage(pageOffset) {
   const params = new URLSearchParams({ limit: PAGE_SIZE, offset: pageOffset });
   activeCategories.forEach((cat) => params.append('category', cat));
+  if (snapshotMaxId !== null) params.set('before', snapshotMaxId);
 
   const res = await fetch(`/api/posts?${params.toString()}`);
   if (!res.ok) throw new Error('Failed to fetch posts');
+
+  if (snapshotMaxId === null) {
+    const headerMaxId = res.headers.get('X-Max-Post-Id');
+    if (headerMaxId !== null) snapshotMaxId = parseInt(headerMaxId);
+  }
+
   return res.json();
 }
 
