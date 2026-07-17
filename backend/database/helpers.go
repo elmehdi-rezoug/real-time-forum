@@ -70,7 +70,7 @@ func InsertMessage(senderID, receiverID int, content string) (int, error) {
 }
 
 // GetMessages retrieves private messages between two users with pagination.
-func GetMessages(userID1, userID2, limit, offset int) ([]types.Message, error) {
+func GetMessages(userID1, userID2, limit, offset int) ([]types.Message, bool, error) {
 	rows, err := Database.Query(
 		`SELECT m.id, m.sender_id, m.receiver_id, m.content, m.created_at, u.nickname
 		FROM messages m
@@ -78,10 +78,10 @@ func GetMessages(userID1, userID2, limit, offset int) ([]types.Message, error) {
 		WHERE (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?)
 		ORDER BY m.created_at DESC
 		LIMIT ? OFFSET ?`,
-		userID1, userID2, userID2, userID1, limit, offset,
+		userID1, userID2, userID2, userID1, limit+1, offset,
 	)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	defer rows.Close()
 
@@ -89,16 +89,21 @@ func GetMessages(userID1, userID2, limit, offset int) ([]types.Message, error) {
 	for rows.Next() {
 		var message types.Message
 		if err := rows.Scan(&message.ID, &message.SenderID, &message.ReceiverID, &message.Content, &message.CreatedAt, &message.SenderNickname); err != nil {
-			return nil, err
+			return nil, false, err
 		}
 		messages = append(messages, message)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	return messages, nil
+	hasMore := len(messages) > limit
+	if hasMore {
+		messages = messages[:limit]
+	}
+
+	return messages, hasMore, nil
 }
 
 // DoesPostExist checks if a post with the given ID exists in the database.

@@ -9,11 +9,13 @@ package handlers
 // - broadcast of user_online/user_offline events to connected clients
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"sync"
 	"time"
 
+	"zone/backend/database"
 	"zone/backend/types"
 
 	"github.com/gorilla/websocket"
@@ -22,6 +24,19 @@ import (
 type wsClient struct {
 	conn *websocket.Conn
 	mu   sync.Mutex
+}
+
+type historyRequest struct {
+	Type      string `json:"type"`
+	PartnerID int    `json:"partner_id"`
+	Offset    int    `json:"offset"`
+}
+
+type historyResponse struct {
+	Type     string          `json:"type"`
+	Messages []types.Message `json:"messages"`
+	Offset   int             `json:"offset"`
+	HasMore  bool            `json:"has_more"`
 }
 
 func (c *wsClient) sendJSON(v interface{}) error {
@@ -74,11 +89,48 @@ func readPump(userID int, client *wsClient) {
 	defer cleanupConnection(userID, client)
 
 	for {
-		_, _, err := client.conn.ReadMessage()
+		_, message, err := client.conn.ReadMessage()
 		if err != nil {
 			return
 		}
+		if err := handleIncomingMessage(userID, client, message); err != nil {
+			log.Println("handleIncomingMessage:", err)
+		}
 	}
+}
+
+// handleIncomingMessage is the WebSocket entry point for incoming message events.
+// It currently handles history requests, and it can be extended later for other message types.
+func handleIncomingMessage(userID int, client *wsClient, payload []byte) error {
+	var req historyRequest
+	if err := json.Unmarshal(payload, &req); err != nil {
+		return err
+	}
+	if req.Type != "get_history" {
+		return nil
+	}
+	if req.PartnerID == 0 {
+		return nil
+	}
+
+	offset := req.Offset
+	if offset < 0 {
+		offset = 0
+	}
+
+	messages, hasMore, err := database.GetMessages(userID, req.PartnerID, 10, offset)
+	if err != nil {
+		return err
+	}
+
+	response := historyResponse{
+		Type:     "history_response",
+		Messages: messages,
+		Offset:   offset,
+		HasMore:  hasMore,
+	}
+
+	return client.sendJSON(response)
 }
 
 // writePump sends periodic WebSocket ping frames and detects when the connection is no longer available.
