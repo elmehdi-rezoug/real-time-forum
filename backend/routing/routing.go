@@ -30,6 +30,7 @@ func RegisterRout() {
 
 	// Protected
 	http.HandleFunc("/logout", limiter.Middleware(middlewares.Auth(handlers.Logout)))
+	http.HandleFunc("/ws", limiter.Middleware(middlewares.Auth(handlers.HandleWebSocket)))
 
 	// API routes
 	http.HandleFunc("/api/me", limiter.Middleware(handlers.Me))
