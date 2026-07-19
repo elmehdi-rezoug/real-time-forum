@@ -16,6 +16,13 @@ import {
   loadMoreComments,
   submitComment,
 } from './comments.js';
+import {
+  closeChatPanel,
+  openChatPanel,
+  sendActiveChatMessage,
+  handleSocketChatEvent,
+  handleSocketStatusEvent,
+} from './chatpanel.js';
 
 export function initAppEvents() {
   // Delegated click handler for declarative `data-action` wiring
@@ -85,6 +92,19 @@ export function initAppEvents() {
         if (postId) loadMoreComments(Number(postId));
         break;
       }
+      case 'open-chat': {
+        const userId = btn.dataset.userId;
+        if (userId) openChatPanel(userId);
+        break;
+      }
+      case 'close-chat': {
+        closeChatPanel();
+        break;
+      }
+      case 'send-chat-message': {
+        sendActiveChatMessage();
+        break;
+      }
       default:
         break;
     }
@@ -100,4 +120,33 @@ export function initAppEvents() {
 
   // Keep history navigation centralized
   addEventListener('popstate', () => router());
+
+  // Keyboard interactions for chat controls rendered dynamically
+  document.body.addEventListener('keydown', (e) => {
+    const target = e.target;
+    if (!(target instanceof HTMLElement)) return;
+
+    if (
+      target.matches('.chat-user-item') &&
+      (e.key === 'Enter' || e.key === ' ')
+    ) {
+      e.preventDefault();
+      const userId = target.dataset.userId;
+      if (userId) openChatPanel(userId);
+      return;
+    }
+
+    if (target.matches('.chat-input') && e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendActiveChatMessage();
+    }
+  });
+
+  // Socket-driven custom events dispatched by chatpanel's WS handler
+  document.addEventListener('chat:socket-chat', (e) => {
+    handleSocketChatEvent(e.detail);
+  });
+  document.addEventListener('chat:socket-status', (e) => {
+    handleSocketStatusEvent(e.detail);
+  });
 }

@@ -18,6 +18,8 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID, userErr := GetUserIDFromSession(r)
+
 	// If a session_token cookie is present, remove that session from
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
@@ -26,11 +28,10 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		_, err := database.Database.Exec("DELETE FROM sessions WHERE id = ?", cookie.Value)
 		if err != nil {
 			log.Printf("Logout: failed to delete session %s: %v", cookie.Value, err)
-		} 
+		}
 	}
 
 	expired := time.Unix(0, 0)
-
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
@@ -40,6 +41,10 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
+
+	if userErr == nil && userID > 0 {
+		DisconnectUserSockets(userID)
+	}
 
 	w.WriteHeader(http.StatusOK)
 }

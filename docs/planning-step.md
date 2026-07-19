@@ -26,18 +26,18 @@ This document lists the ordered subtasks for Epic 1 (Real-Time Private Messaging
 - Goal: Fetch historical messages between two users with a page size of 10 and offset-based pagination.
 - Modify: `backend/handlers/websocket.go` — handle incoming requests for older messages via WS (or create a REST endpoint if preferred).
 
-### 5. Backend Real-Time Message Routing — Planned
+### 5. Backend Real-Time Message Routing — Finished
 
 - Goal: Process incoming private messages via WebSockets, persist them to the database, and route the message payload to all active connections (tabs) of both the sender and the recipient.
 - Modify: `backend/handlers/websocket.go` — add logic to parse incoming chat messages, call database insertion methods, and broadcast the message to the targeted users' connection arrays.
 
-### 6. Frontend UI Structure & Styling — Planned
+### 6. Frontend UI Structure & Styling — Finished
 
 - Goal: Inject DOM containers for the always-visible user list and chat window without changing the base HTML file.
 - Modify: `frontend/static/js/chatpanel.js` — dynamically generate and inject user list and chat window elements.
 - Modify: `frontend/static/css/style.css` — add styles for online/offline indicators, message formatting, and scrollable chat areas.
 
-### 7. Client-Side WebSocket & Real-Time Events — Planned
+### 7. Client-Side WebSocket & Real-Time Events — Finished
 
 - Goal: Connect to the WebSocket server from the client, send/receive private messages, and update the UI in real time.
 - Modify: `frontend/static/js/app-events.js` — register new chat and status events.

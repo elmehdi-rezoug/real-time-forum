@@ -1,5 +1,21 @@
 import { renderNavbar } from '../navbar.js';
 import { loadPosts } from '../posts.js';
+import { renderChatUsers, initWebSocket } from '../chatpanel.js';
+
+// Function to fetch real chat users from the backend
+async function fetchChatUsers() {
+  try {
+    const response = await fetch('/api/users');
+    if (!response.ok) {
+      throw new Error('Failed to fetch chat users');
+    }
+    const users = await response.json();
+    return users;
+  } catch (error) {
+    console.error('Failed to fetch chat users:', error);
+    return [];
+  }
+}
 
 export function renderHome() {
   const app = document.getElementById('app');
@@ -30,6 +46,14 @@ export function renderHome() {
       </main>
 
     </div>`;
+
+  // Initialize WebSocket connection
+  initWebSocket();
+
+  // Load initial chat users (will be updated via WebSocket)
+  fetchChatUsers().then((users) => {
+    renderChatUsers(users);
+  });
 
   loadPosts();
 }

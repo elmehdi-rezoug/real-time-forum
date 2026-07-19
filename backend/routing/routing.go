@@ -34,6 +34,7 @@ func RegisterRout() {
 
 	// API routes
 	http.HandleFunc("/api/me", limiter.Middleware(handlers.Me))
+	http.HandleFunc("/api/users", limiter.Middleware(middlewares.Auth(handlers.HandleGetUsers)))
 
 	http.HandleFunc("/api/posts/create", limiter.Middleware(middlewares.Auth(handlers.CreatePostAPI)))
 

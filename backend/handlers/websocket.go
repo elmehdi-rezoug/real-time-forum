@@ -48,6 +48,7 @@ type historyRequest struct {
 // chatMessageRequest is sent by the client to deliver a private message.
 type chatMessageRequest struct {
 	Type       string `json:"type"`
+	SenderID   int    `json:"sender_id"`
 	ReceiverID int    `json:"receiver_id"`
 	Content    string `json:"content"`
 }
@@ -204,6 +205,11 @@ func handleSendMessage(userID int, client *wsClient, payload []byte) error {
 		return sendSocketError(client, "invalid message payload")
 	}
 
+	// Validate that the sender_id from the payload matches the authenticated user
+	if req.SenderID != userID {
+		return sendSocketError(client, "sender_id mismatch")
+	}
+
 	content, err := validateChatMessageRequest(userID, req)
 	if err != nil {
 		return sendSocketError(client, err.Error())
@@ -222,8 +228,8 @@ func handleSendMessage(userID int, client *wsClient, payload []byte) error {
 	}
 
 	payloadToSend := types.WebSocketPayload{
-		Type:     "new_message",
-		Message:  &message,
+		Type:    "new_message",
+		Message: &message,
 	}
 	broadcastToUsers(payloadToSend, userID, req.ReceiverID)
 
@@ -243,10 +249,13 @@ func validateHistoryRequest(req historyRequest) error {
 
 // validateChatMessageRequest checks the message request and returns the trimmed content.
 func validateChatMessageRequest(senderID int, req chatMessageRequest) (string, error) {
+	if req.SenderID <= 0 {
+		return "", errors.New("invalid sender_id")
+	}
 	if req.ReceiverID <= 0 {
 		return "", errors.New("invalid receiver_id")
 	}
-	if req.ReceiverID == senderID {
+	if req.ReceiverID == req.SenderID {
 		return "", errors.New("self message blocked")
 	}
 
@@ -374,4 +383,16 @@ func removeClient(userID int, client *wsClient) bool {
 
 	clients[userID] = filtered
 	return false
+}
+
+// DisconnectUserSockets force-closes all active websocket connections for a user.
+// Used by logout to immediately broadcast offline status.
+func DisconnectUserSockets(userID int) {
+	clientsMu.Lock()
+	conns := append([]*wsClient(nil), clients[userID]...)
+	clientsMu.Unlock()
+
+	for _, client := range conns {
+		cleanupConnection(userID, client)
+	}
 }
