@@ -18,5 +18,6 @@ func HandleStatic(w http.ResponseWriter, r *http.Request) {
 		HandleError(w, http.StatusNotFound, "Not Found!")
 		return
 	}
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	http.ServeFile(w, r, filePath)
 }
