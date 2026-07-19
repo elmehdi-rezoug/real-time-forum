@@ -27,6 +27,24 @@ export function initAuthSync() {
     if (event.key !== LOGOUT_SYNC_KEY || !event.newValue) return;
     applyLoggedOutState(false);
   });
+
+  // Listen for force logout events from WebSocket
+  document.addEventListener('auth:force-logout', (event) => {
+    console.log('Received auth:force-logout event:', event.detail);
+    // Only handle if the force logout is for the current user
+    const currentUserId = state.auth.id;
+    console.log(
+      'Current user ID:',
+      currentUserId,
+      'Event user ID:',
+      event.detail?.user_id,
+    );
+    if (event.detail?.user_id && event.detail.user_id === currentUserId) {
+      console.log('Force logging out user');
+      applyLoggedOutState(false);
+      broadcastLogoutToOtherTabs();
+    }
+  });
 }
 
 export async function handleLogout() {

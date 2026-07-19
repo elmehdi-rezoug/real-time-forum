@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 	"zone/backend/database"
+	"zone/backend/types"
 
 	"github.com/gofrs/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -17,12 +18,12 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch r.Method {
-		case http.MethodGet:
+	case http.MethodGet:
 		http.ServeFile(w, r, "./frontend/index.html")
 		return
 	case http.MethodPost:
 		identifier := strings.TrimSpace(r.FormValue("login"))
-		password   := r.FormValue("password")
+		password := r.FormValue("password")
 
 		if identifier == "" || password == "" {
 			HandleError(w, http.StatusBadRequest, "Email/username and password are required")
@@ -52,7 +53,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-	// create new session
+		// create new session
 
 		sessionUUID, err := uuid.NewV4()
 		if err != nil {
@@ -82,6 +83,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			HttpOnly: true,
 			SameSite: http.SameSiteLaxMode,
 		})
+
+		// Notify all other tabs/sessions of this user to logout
+		payload := types.WebSocketPayload{
+			Type:   "force_logout",
+			UserID: userID,
+		}
+		broadcastToUsers(payload, userID)
 
 		RespondJSON(w, http.StatusOK, map[string]string{"message": "login successfully"})
 

@@ -514,9 +514,12 @@ export function handleSocketChatEvent(payload) {
 
     if (offset === 0) {
       container.innerHTML = '';
-      [...messages].reverse().forEach((message) => appendMessageToActiveChat(message));
+      [...messages]
+        .reverse()
+        .forEach((message) => appendMessageToActiveChat(message));
       if (messages.length === 0) {
-        container.innerHTML = '<div class="chat-no-history">No messages yet.</div>';
+        container.innerHTML =
+          '<div class="chat-no-history">No messages yet.</div>';
       } else {
         container.scrollTop = container.scrollHeight;
       }
@@ -558,7 +561,19 @@ export function initWebSocket() {
       return;
     }
 
-    document.dispatchEvent(new CustomEvent('chat:socket-chat', { detail: payload }));
+    // Handle force logout message
+    if (payload?.type === 'force_logout') {
+      console.log('Received force_logout message:', payload);
+      // Dispatch a custom event that auth.js can listen to
+      document.dispatchEvent(
+        new CustomEvent('auth:force-logout', { detail: payload }),
+      );
+      return;
+    }
+
+    document.dispatchEvent(
+      new CustomEvent('chat:socket-chat', { detail: payload }),
+    );
   };
 
   socket.onclose = () => {
