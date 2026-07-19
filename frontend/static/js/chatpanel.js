@@ -2,7 +2,7 @@ import { state } from './state.js';
 import { displayMessage } from './toast.js';
 import { escapeHTML } from './utils.js';
 
-const HISTORY_SCROLL_THROTTLE_MS = 250;
+const HISTORY_SCROLL_THROTTLE_MS = 1000;
 
 const chatState = {
   socket: null,
@@ -14,6 +14,7 @@ const chatState = {
   renderedMessageIdsByPartner: new Map(),
   pendingHistoryRequest: null,
   lastScrollLoadAt: 0,
+  throttleTimeoutId: null,
 };
 
 function ensureChatSidebar() {
@@ -253,10 +254,35 @@ function updateConversationAfterMessage(message) {
 function handleHistoryScrollLoad(e) {
   const currentPartnerId = chatState.activeUserId;
   if (!currentPartnerId) return;
-  if (e.target.scrollTop > 40) return;
+
+  // Only load more history when scrolling up and at the very top
+  // scrollTop must be exactly 0 to trigger loading
+  const isAtVeryTop = e.target.scrollTop === 0;
+
+  // If we're not at the very top, don't load more history
+  if (!isAtVeryTop) return;
 
   const now = Date.now();
-  if (now - chatState.lastScrollLoadAt < HISTORY_SCROLL_THROTTLE_MS) return;
+  if (now - chatState.lastScrollLoadAt < HISTORY_SCROLL_THROTTLE_MS) {
+    // Even if throttled, we still want to check again after the throttle period
+    // Clear any existing timeout
+    if (chatState.throttleTimeoutId) {
+      clearTimeout(chatState.throttleTimeoutId);
+    }
+
+    // Set a timeout to check again after throttle period
+    chatState.throttleTimeoutId = setTimeout(
+      () => {
+        chatState.throttleTimeoutId = null;
+        // Trigger scroll event again to check if we're still at the top
+        e.target.dispatchEvent(new Event('scroll'));
+      },
+      HISTORY_SCROLL_THROTTLE_MS - (now - chatState.lastScrollLoadAt),
+    );
+
+    return;
+  }
+
   chatState.lastScrollLoadAt = now;
 
   const hasMore = chatState.hasMoreHistoryByPartner.get(currentPartnerId);
@@ -324,7 +350,10 @@ function renderPanelShell(user) {
 
   const messagesContainer = getMessagesContainer();
   if (messagesContainer) {
-    messagesContainer.addEventListener('scroll', handleHistoryScrollLoad);
+    // Add scroll event listener with passive option for better performance
+    messagesContainer.addEventListener('scroll', handleHistoryScrollLoad, {
+      passive: true,
+    });
   }
 
   container.classList.add('chat-open');
@@ -526,7 +555,15 @@ export function handleSocketChatEvent(payload) {
       return;
     }
 
+    const previousScrollTop = container.scrollTop;
+    const previousScrollHeight = container.scrollHeight;
+
     messages.forEach((message) => prependMessageToActiveChat(message));
+
+    // Maintain scroll position relative to bottom when adding older messages
+    // This prevents jumping to the top of the message history
+    container.scrollTop =
+      previousScrollTop + (container.scrollHeight - previousScrollHeight);
   }
 }
 
@@ -589,6 +626,12 @@ export function disconnectChatSocket() {
   if (chatState.socket) {
     chatState.socket.close();
     chatState.socket = null;
+  }
+
+  // Clear any pending throttle timeout
+  if (chatState.throttleTimeoutId) {
+    clearTimeout(chatState.throttleTimeoutId);
+    chatState.throttleTimeoutId = null;
   }
 
   chatState.usersById.clear();

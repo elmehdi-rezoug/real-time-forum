@@ -1284,15 +1284,18 @@ button:focus-visible,
 .chat-panel-dock.open {
   display: flex;
   flex-direction: column;
-  position: sticky;
-  top: 88px;
-  height: calc(100vh - 104px);
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 400px;
+  height: 420px; /* Height for approximately 7 visible messages */
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-md);
   animation: post-in 0.25s var(--ease);
+  z-index: 1000;
 }
 
 /* ---- Chat panel (fills the dock) ---- */
@@ -1349,6 +1352,9 @@ button:focus-visible,
     color 0.15s var(--ease),
     background 0.15s var(--ease);
   line-height: 1;
+  /* Ensure the close button is always visible and accessible */
+  position: relative;
+  z-index: 2;
 }
 .chat-close:hover {
   color: var(--danger);
@@ -1509,12 +1515,11 @@ button:focus-visible,
   }
   .chat-panel-dock.open {
     position: fixed;
-    top: 64px;
-    right: 1rem;
-    bottom: 1rem;
-    width: min(420px, calc(100vw - 2rem));
-    height: auto;
-    z-index: 90;
+    bottom: 20px;
+    right: 20px;
+    width: min(400px, calc(100vw - 40px));
+    height: 420px; /* Height for approximately 7 visible messages */
+    z-index: 1000;
     box-shadow: var(--shadow-lg);
   }
 }
@@ -1600,11 +1605,12 @@ button:focus-visible,
   }
 
   .chat-panel-dock.open {
-    top: 58px;
-    right: 0.5rem;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
     left: 0.5rem;
-    bottom: 0.5rem;
-    width: auto;
+    width: calc(100vw - 40px);
+    height: 420px; /* Height for approximately 7 visible messages */
   }
 }
 
