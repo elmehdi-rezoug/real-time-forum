@@ -2,7 +2,7 @@ import { initAuth, state } from './state.js';
 import { router } from './routeer.js';
 import { initAuthSync } from './auth.js';
 import { initAppEvents } from './app-events.js';
-import { initWebSocket } from './chatpanel.js';
+import { initWebSocket } from './ChatData.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const app = document.getElementById('app');

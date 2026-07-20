@@ -1,7 +1,7 @@
 import { renderNavbar } from '../navbar.js';
 import { loadPosts } from '../posts.js';
-import { renderChatUsers, initWebSocket } from '../chatpanel.js';
-
+import { renderChatUsers } from '../Chatui.js';
+import { initWebSocket } from '../ChatData.js';
 // Function to fetch real chat users from the backend
 async function fetchChatUsers() {
   try {

@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { navigateTo } from './routeer.js';
 import { displayMessage } from './toast.js';
-import { disconnectChatSocket } from './chatpanel.js';
+import { disconnectChatSocket } from './ChatData.js';
 
 const LOGOUT_SYNC_KEY = 'forum:auth:logout';
 let authSyncInitialized = false;
@@ -37,7 +37,7 @@ export function initAuthSync() {
       'Current user ID:',
       currentUserId,
       'Event user ID:',
-      event.detail?.user_id,
+      event.detail?.user_id
     );
     if (event.detail?.user_id && event.detail.user_id === currentUserId) {
       console.log('Force logging out user');

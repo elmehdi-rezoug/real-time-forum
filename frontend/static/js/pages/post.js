@@ -1,8 +1,8 @@
 import { state } from '../state.js';
 import { fetchPostAndComments } from '../comments.js';
 import { renderNavbar } from '../navbar.js';
-import { renderChatUsers, initWebSocket, injectChatLayout } from '../chatpanel.js';
-
+import { renderChatUsers, injectChatLayout } from '../Chatui.js';
+import { initWebSocket } from '../ChatData.js';
 async function fetchChatUsers() {
   try {
     const response = await fetch('/api/users');

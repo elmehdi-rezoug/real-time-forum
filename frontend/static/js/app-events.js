@@ -16,13 +16,12 @@ import {
   loadMoreComments,
   submitComment,
 } from './comments.js';
+import { closeChatPanel, openChatPanel } from './Chatui.js';
 import {
-  closeChatPanel,
-  openChatPanel,
   sendActiveChatMessage,
   handleSocketChatEvent,
   handleSocketStatusEvent,
-} from './chatpanel.js';
+} from './ChatData.js';
 
 export function initAppEvents() {
   // Delegated click handler for declarative `data-action` wiring
@@ -148,7 +147,7 @@ export function initAppEvents() {
     }
   });
 
-  // Socket-driven custom events dispatched by chatpanel's WS handler
+  // Socket-driven custom events dispatched by chatData's WS handler
   document.addEventListener('chat:socket-chat', (e) => {
     handleSocketChatEvent(e.detail);
   });
