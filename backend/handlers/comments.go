@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"zone/backend/database"
 	"zone/backend/types"
 )
@@ -75,7 +76,7 @@ func CreateCommentAPI(w http.ResponseWriter, r *http.Request) {
 		HandleError(w, http.StatusBadRequest, "Invalid post_id")
 		return
 	}
-	payload.Content = r.FormValue("content")
+	payload.Content = strings.TrimSpace(r.FormValue("content"))
 	if payload.Content == "" || len(payload.Content) > 500 {
 		HandleError(w, http.StatusBadRequest, "Content cannot be empty or too long")
 		return
