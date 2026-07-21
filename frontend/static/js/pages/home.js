@@ -1,8 +1,8 @@
 import { renderNavbar } from '../navbar.js';
 import { loadPosts } from '../posts.js';
-import { renderChatUsers } from '../Chatui.js';
-import { initWebSocket } from '../ChatData.js';
-// Function to fetch real chat users from the backend
+import { renderChatUsers, openChatPanel } from '../Chatui.js';
+import { initWebSocket, chatState } from '../ChatData.js';
+
 async function fetchChatUsers() {
   try {
     const response = await fetch('/api/users');
@@ -53,6 +53,9 @@ export function renderHome() {
   // Load initial chat users (will be updated via WebSocket)
   fetchChatUsers().then((users) => {
     renderChatUsers(users);
+    if (chatState.activeUserId) {
+      openChatPanel(chatState.activeUserId);
+    }
   });
 
   loadPosts();

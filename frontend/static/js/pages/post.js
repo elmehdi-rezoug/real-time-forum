@@ -1,8 +1,9 @@
 import { state } from '../state.js';
 import { fetchPostAndComments } from '../comments.js';
 import { renderNavbar } from '../navbar.js';
-import { renderChatUsers, injectChatLayout } from '../Chatui.js';
-import { initWebSocket } from '../ChatData.js';
+import { renderChatUsers, injectChatLayout, openChatPanel } from '../Chatui.js';
+import { initWebSocket, chatState } from '../ChatData.js';
+
 async function fetchChatUsers() {
   try {
     const response = await fetch('/api/users');
@@ -38,7 +39,12 @@ export function renderPostPage(postId) {
 
   injectChatLayout();
   initWebSocket();
-  fetchChatUsers().then((users) => renderChatUsers(users));
+  fetchChatUsers().then((users) => {
+    renderChatUsers(users);
+    if (chatState.activeUserId) {
+      openChatPanel(chatState.activeUserId);
+    }
+  });
 
   fetchPostAndComments(postId);
 }

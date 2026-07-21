@@ -114,6 +114,12 @@ export function upsertUser(rawUser = {}) {
   if (!normalized) return null;
 
   const existing = chatState.usersById.get(normalized.id);
+
+  // Only use the incoming unread value if the raw data explicitly provided one;
+  // otherwise keep the existing client-side count so that page navigations
+  // (which re-fetch /api/users) don't accidentally clear unread badges.
+  const hasExplicitUnread = 'unread' in rawUser;
+
   const merged = {
     ...existing,
     ...normalized,
@@ -121,10 +127,9 @@ export function upsertUser(rawUser = {}) {
     lastMessage: normalized.lastMessage || existing?.lastMessage || '',
     lastMessageTime:
       normalized.lastMessageTime || existing?.lastMessageTime || '',
-    unread:
-      typeof normalized.unread === 'number'
-        ? normalized.unread
-        : Number(existing?.unread || 0),
+    unread: hasExplicitUnread
+      ? normalized.unread
+      : Number(existing?.unread || 0),
   };
 
   chatState.usersById.set(merged.id, merged);
